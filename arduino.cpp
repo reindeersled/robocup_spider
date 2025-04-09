@@ -27,5 +27,3 @@ void walk(int pin1, int pin2) {
     servos[pin2].write(0);  // Move servo 2 to 0 degrees (e.g., down)
     delay(500); 
 }
-
-
