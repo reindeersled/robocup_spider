@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Red 2–7s → Green ≥9s Loop</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: red;
+      height: 100vh;
+      transition: background-color 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  function startCycle() {
+    // Random delay between 2 and 7 seconds for red (2000 to 7000 ms)
+    const redDuration = Math.floor(Math.random() * 5000) + 2000;
+
+    setTimeout(() => {
+      document.body.style.backgroundColor = 'green';
+
+      // Stay green for at least 9 seconds
+      setTimeout(() => {
+        document.body.style.backgroundColor = 'red';
+
+        // Restart the cycle
+        startCycle();
+      }, 9000);
+
+    }, redDuration);
+  }
+
+  // Start the first cycle
+  startCycle();
+</script>
+
+</body>
+</html>
