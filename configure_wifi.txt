@@ -1,0 +1,3 @@
+1. insert sd card into mac - boot should show up
+2. open terminal and run touch /Volumes/boot/ssh
+3. go to wpa_supplicant.conf and change wifi settings as necessary
