@@ -9,23 +9,23 @@ from math import sin, pi
 # Servo Configuration
 # Configured so that the pins should line up in a row on the raspberry pi
 servos = [
-    AngularServo(17, min_angle=0, max_angle=180),  # Leg 1 side-to-side
-    AngularServo(18, min_angle=0, max_angle=180),  # Leg 1 up-down
+    AngularServo(2, min_angle=0, max_angle=180),  # Leg 1 side-to-side
+    AngularServo(3, min_angle=0, max_angle=180),  # Leg 1 up-down
 
-    AngularServo(22, min_angle=0, max_angle=180), 
-    AngularServo(23, min_angle=0, max_angle=180), 
+    AngularServo(17, min_angle=0, max_angle=180), 
+    AngularServo(27, min_angle=0, max_angle=180), 
 
-    AngularServo(26, min_angle=0, max_angle=180), 
-    AngularServo(20, min_angle=0, max_angle=180), 
+    AngularServo(10, min_angle=0, max_angle=180), 
+    AngularServo(9, min_angle=0, max_angle=180), 
+
+    AngularServo(0, min_angle=0, max_angle=180), 
+    AngularServo(5, min_angle=0, max_angle=180), 
 
     AngularServo(6, min_angle=0, max_angle=180), 
-    AngularServo(12, min_angle=0, max_angle=180), 
+    AngularServo(13, min_angle=0, max_angle=180), 
 
-    AngularServo(9, min_angle=0, max_angle=180), 
-    AngularServo(25, min_angle=0, max_angle=180), 
-
-    AngularServo(27, min_angle=0, max_angle=180), 
-    AngularServo(28, min_angle=0, max_angle=180), 
+    AngularServo(19, min_angle=0, max_angle=180), 
+    AngularServo(26, min_angle=0, max_angle=180), 
 ]
 
 # Distance Sensor Configuration
@@ -194,7 +194,7 @@ def main():
                     dominant_color = get_dominant_color(roi)
                     color_name = classify_color(dominant_color)
                     
-                    # Display the frame (optional)
+                    # Display the frame 
                     cv2.putText(image, f"Color: {color_name}", (20, 50), 
                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                     cv2.imshow("Spider Bot View", image)

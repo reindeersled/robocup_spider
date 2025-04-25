@@ -7,8 +7,8 @@ from math import sin, pi
 servos = [
     AngularServo(17, min_angle=0, max_angle=180),  # Pin 0 → GPIO17
     AngularServo(18, min_angle=0, max_angle=180),  # Pin 1 → GPIO18
-    AngularServo(27, min_angle=0, max_angle=180),  # 3 -- 27
-    AngularServo(28, min_angle=0, max_angle=180),  # 4 -- 28
+    AngularServo(26, min_angle=0, max_angle=180),  # 3 -- 26
+    AngularServo(27, min_angle=0, max_angle=180),  # 4 -- 27
 
     #servo angles go from 0-180
     #assume starts at 0 - either left/right, and down
