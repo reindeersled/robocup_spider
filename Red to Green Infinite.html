@@ -35,6 +35,13 @@
 
   // Start the first cycle
   startCycle();
+
+  // Event listener for the "1" key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === '1') {
+      document.body.style.backgroundColor = 'blue';
+    }
+  });
 </script>
 
 </body>
