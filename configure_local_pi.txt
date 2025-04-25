@@ -1,0 +1,8 @@
+1. insert sd card into mac - boot should show up
+2. open terminal and run touch /Volumes/boot/ssh
+3. go to wpa_supplicant.conf and change wifi settings as necessary
+
+- ssh TrinityTarantulas@<ip_address>
+
+# install packages
+- sudo apt install python3-gpiozero
