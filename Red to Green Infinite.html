@@ -15,6 +15,8 @@
 <body>
 
 <script>
+  let cycleStarted = false;
+
   function startCycle() {
     // Random delay between 2 and 7 seconds for red (2000 to 7000 ms)
     const redDuration = Math.floor(Math.random() * 5000) + 2000;
@@ -33,13 +35,13 @@
     }, redDuration);
   }
 
-  // Start the first cycle
-  startCycle();
-
-  // Event listener for the "1" key
+  // Key press handling
   document.addEventListener('keydown', function(event) {
     if (event.key === '1') {
       document.body.style.backgroundColor = 'blue';
+    } else if (event.key === '2' && !cycleStarted) {
+      cycleStarted = true;
+      startCycle();
     }
   });
 </script>
