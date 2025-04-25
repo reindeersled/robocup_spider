@@ -3,7 +3,7 @@ from time import sleep
 
 sensor = DistanceSensor(echo=18, trigger=17)
 
-THRESHOLD = 0.1 # ts is 10cm (i think)
+THRESHOLD = 0.1
 
 def main():
     print("distance sensor is running. press control c to exit.")
