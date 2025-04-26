@@ -7,7 +7,7 @@ from gpiozero import AngularServo, DistanceSensor
 from math import sin, pi
 
 # Servo Configuration
-# Configured so that the pins should line up in a row on the raspberry pi
+# Configured so that the pins should line up in a column on the raspberry pi
 servos = [
     AngularServo(2, min_angle=0, max_angle=180),  # Leg 1 side-to-side
     AngularServo(3, min_angle=0, max_angle=180),  # Leg 1 up-down
