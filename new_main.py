@@ -4,7 +4,6 @@ import random
 import numpy as np
 from picamera2 import Picamera2
 from gpiozero import AngularServo, DistanceSensor
-from math import sin, pi
 
 # Servo Configuration (keeping original GPIO pins)
 servos = [
@@ -27,67 +26,71 @@ servos = [
     AngularServo(26, min_angle=0, max_angle=180), 
 ]
 
-# Distance Sensor Configuration
-sensor = DistanceSensor(echo=23, trigger=24)
-OBSTACLE_THRESHOLD = 10  # 10cm
-
-# Camera Configuration
-picam2 = Picamera2()
-config = picam2.create_preview_configuration(main={"size": (640, 480)})
-picam2.configure(config)
-
-# Game Parameters
-SPEED_THRESHOLDS = {
-    'slow': (0.3, 0.5),
-    'medium': (0.5, 0.7),
-    'fast': (0.7, 0.9)
-}
-TWITCH_CHANCE = 0.05  # 5% chance to twitch on red light
-
-# Leg groupings for tripod gait
-TRIPOD_1 = [0, 4, 8]   # Right Front, Left Middle, Right Back (side-to-side servos)
-TRIPOD_1_UP = [1, 5, 9] # Corresponding up-down servos
-TRIPOD_2 = [2, 6, 10]   # Left Front, Right Middle, Left Back (side-to-side)
-TRIPOD_2_UP = [3, 7, 11] # Corresponding up-down servos
-
-def get_dominant_color(image, k=1):
-    pixels = image.reshape(-1, 3).astype(np.float32)
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, 0.1)
-    _, _, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
-    return centers[0].astype(int)[::-1]  # BGR → RGB
-
-def classify_color(rgb):
-    if len(rgb) < 3:
-        return "None"
+# CALIBRATION OFFSETS - Adjust these values for each servo
+servo_offsets = [
+    0,   # Leg 1 side-to-side (GPIO 2)
+    0,   # Leg 1 up-down (GPIO 3)
     
-    r, g, b = rgb[:3]
-    hsv = cv2.cvtColor(np.uint8([[rgb]]), cv2.COLOR_RGB2HSV)[0][0]
-    hue, sat, val = hsv
+    0,   # Leg 2 side-to-side (GPIO 17)
+    0,   # Leg 2 up-down (GPIO 27)
     
-    if sat < 50 or val < 50:
-        return "None"
+    0,   # Leg 3 side-to-side (GPIO 10)
+    0,   # Leg 3 up-down (GPIO 9)
     
-    if (hue < 10 or hue > 170) and sat > 100:
-        return "Red"
-    elif 20 < hue < 35 and sat > 80:
-        return "Yellow"
-    elif 35 < hue < 85 and sat > 60:
-        return "Green"
-    elif 85 < hue < 130 and sat > 80:
-        return "Blue"
-    return "None"
+    0,   # Leg 4 side-to-side (GPIO 0)
+    0,   # Leg 4 up-down (GPIO 5)
+    
+    0,   # Leg 5 side-to-side (GPIO 6)
+    0,   # Leg 5 up-down (GPIO 13)
+    
+    0,   # Leg 6 side-to-side (GPIO 19)
+    0    # Leg 6 up-down (GPIO 26)
+]
+
+def set_servo_angle(servo_index, angle):
+    """Set servo angle with calibration offset"""
+    adjusted_angle = angle + servo_offsets[servo_index]
+    # Constrain to valid range
+    adjusted_angle = max(0, min(180, adjusted_angle))
+    servos[servo_index].angle = adjusted_angle
+
+def calibrate_servos():
+    """Interactive calibration routine"""
+    print("\n=== SERVO CALIBRATION MODE ===")
+    print("For each servo, enter offset needed to make it point forward/up")
+    
+    for i in range(len(servos)):
+        leg_num = (i // 2) + 1
+        servo_type = "side-to-side" if i % 2 == 0 else "up-down"
+        
+        print(f"\nCalibrating Leg {leg_num} {servo_type} (Servo {i})")
+        set_servo_angle(i, 90)
+        time.sleep(1)
+        
+        while True:
+            offset = input(f"Current offset: {servo_offsets[i]}° "
+                         f"(Enter new offset or 'c' to continue): ")
+            if offset.lower() == 'c':
+                break
+            try:
+                servo_offsets[i] = int(offset)
+                set_servo_angle(i, 90)  # Recenter with new offset
+            except ValueError:
+                print("Please enter a number or 'c'")
+    
+    print("\nCalibration complete! Offsets saved:")
+    print(servo_offsets)
 
 def initialize_servos():
-    """Initialize servos to safe positions"""
-    print("Initializing servos...")
-    # Set all servos to middle position with reduced range
-    for servo in servos:
-        servo.angle = 90
+    """Initialize all servos using calibrated positions"""
+    print("Initializing servos with calibration offsets...")
+    for i in range(len(servos)):
+        set_servo_angle(i, 90)  # Start at center position
     time.sleep(1)
     
     # Set up-down servos to raised position
     for i in range(1, len(servos), 2):
-        servos[i].angle = 60
+        set_servo_angle(i, 60)
     time.sleep(1)
 
 def spider_die():
@@ -125,37 +128,37 @@ def walk_forward_tripod(speed):
     """Improved tripod gait with smoother movement"""
     # Phase 1: Lift and swing TRIPOD_1
     for up_servo in TRIPOD_1_UP:
-        servos[up_servo].angle = 90  # Lift legs
+        set_servo_angle(up_servo, 90)  # Lift legs
     time.sleep(0.1 * speed)
     
     for side_servo in TRIPOD_1:
-        servos[side_servo].angle = 120  # Swing forward
+        set_servo_angle(side_servo, 120)  # Swing forward
     time.sleep(0.2 * speed)
     
     for up_servo in TRIPOD_1_UP:
-        servos[up_servo].angle = 60  # Lower legs
+        set_servo_angle(up_servo, 60)  # Lower legs
     time.sleep(0.1 * speed)
     
     # Phase 2: Lift and swing TRIPOD_2
     for up_servo in TRIPOD_2_UP:
-        servos[up_servo].angle = 90  # Lift legs
+        set_servo_angle(up_servo, 90)  # Lift legs
     time.sleep(0.1 * speed)
     
     for side_servo in TRIPOD_2:
-        servos[side_servo].angle = 60  # Swing forward
+        set_servo_angle(side_servo, 60)  # Swing forward
     time.sleep(0.2 * speed)
     
     for up_servo in TRIPOD_2_UP:
-        servos[up_servo].angle = 60  # Lower legs
+        set_servo_angle(up_servo, 60)  # Lower legs
     time.sleep(0.1 * speed)
     
     # Phase 3: Push back with grounded legs
     for side_servo in TRIPOD_1:
-        servos[side_servo].angle = 90  # Return to center
+        set_servo_angle(side_servo, 90)  # Return to center
     time.sleep(0.2 * speed)
     
     for side_servo in TRIPOD_2:
-        servos[side_servo].angle = 90  # Return to center
+        set_servo_angle(side_servo, 90)  # Return to center
     time.sleep(0.1 * speed)
 
 def avoid_obstacle_tripod():
@@ -167,72 +170,59 @@ def avoid_obstacle_tripod():
         if direction == 'left':
             # Lift right legs
             for up_servo in TRIPOD_1_UP:
-                servos[up_servo].angle = 90
+                set_servo_angle(up_servo, 90)
             time.sleep(0.1)
             
             # Push left
             for side_servo in TRIPOD_1:
-                servos[side_servo].angle = 120
+                set_servo_angle(side_servo, 120)
             time.sleep(0.2)
             
             # Lower right legs
             for up_servo in TRIPOD_1_UP:
-                servos[up_servo].angle = 60
+                set_servo_angle(up_servo, 60)
             time.sleep(0.1)
         else:
             # Lift left legs
             for up_servo in TRIPOD_2_UP:
-                servos[up_servo].angle = 90
+                set_servo_angle(up_servo, 90)
             time.sleep(0.1)
             
             # Push right
             for side_servo in TRIPOD_2:
-                servos[side_servo].angle = 60
+                set_servo_angle(side_servo, 60)
             time.sleep(0.2)
             
             # Lower left legs
             for up_servo in TRIPOD_2_UP:
-                servos[up_servo].angle = 60
+                set_servo_angle(up_servo, 60)
             time.sleep(0.1)
             
         time.sleep(0.2)
 
 def test_servos():
-    """Improved servo testing function with better timing and power management"""
-    print("Testing all servos...")
+    """Proper servo testing function with calibration support"""
+    print("\n=== SERVO TESTING MODE ===")
+    print("Testing all servos with current calibration offsets")
     
-    # First reset all servos to neutral position
-    for servo in servos:
-        print(f"testing servo {servo}, setting angle to 30")
-        servos[servo].angle = 30
-        time.sleep(0.5)
-        print(f"testing servo {servo}, setting angle to 60")
-        servos[servo].angle = 60
-        time.sleep(0.5)
-        print(f"testing servo {servo}, setting angle to 90")
-        servos[servo].angle = 90
-        time.sleep(0.5)
-        print(f"testing servo {servo}, setting angle to 120")
-        servos[servo].angle = 120
-        time.sleep(0.5)
-    
-    # Test each servo individually with better timing
-    print("now testing all 30-degree angles")
-    for i, servo in enumerate(servos):
-        print(f"Testing servo {i} on GPIO {servo}")
+    # Test each servo individually
+    for i in range(len(servos)):
+        leg_num = (i // 2) + 1
+        servo_type = "side-to-side" if i % 2 == 0 else "up-down"
         
-        # Move smoothly through test positions
-        for angle in [0, 30, 60, 90, 120]:
-            print(f"  Moving to {angle}°")
-            servo.angle = angle
-            time.sleep(1)  # Longer delay for stable movement
-            
+        print(f"\nTesting Leg {leg_num} {servo_type} (Servo {i})")
+        
+        # Test full range with calibration
+        for angle in [30, 60, 90, 120, 150]:
+            print(f"Moving to {angle}° (actual: {angle + servo_offsets[i]}°)")
+            set_servo_angle(i, angle)
+            time.sleep(1)
+        
         # Return to neutral
-        servo.angle = 30
-        time.sleep(0.5)  # Pause before next servo
-        
-    print("Servo test complete")
-    time.sleep(1)
+        set_servo_angle(i, 90)
+        time.sleep(0.5)
+    
+    print("\nServo test complete!")
 
 
 def main():
@@ -290,6 +280,7 @@ def main():
 
 if __name__ == "__main__":
     # Uncomment to test servos individually before main program
+    calibrate_servos()
     test_servos()
     # time.sleep(1)
     # main()
