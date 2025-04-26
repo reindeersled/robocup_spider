@@ -8,23 +8,23 @@ from math import sin, pi
 
 # Servo Configuration (keeping original GPIO pins)
 servos = [
-    AngularServo(2, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150),  # Leg 1 side-to-side
-    AngularServo(3, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150),  # Leg 1 up-down
+    AngularServo(2, min_angle=0, max_angle=180),  # Leg 1 side-to-side
+    AngularServo(3, min_angle=0, max_angle=180),  # Leg 1 up-down
 
-    AngularServo(17, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
-    AngularServo(27, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
+    AngularServo(17, min_angle=0, max_angle=180), 
+    AngularServo(27, min_angle=0, max_angle=180), 
 
-    AngularServo(10, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
-    AngularServo(9, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
+    AngularServo(10, min_angle=0, max_angle=180), 
+    AngularServo(9, min_angle=0, max_angle=180), 
 
-    AngularServo(0, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
-    AngularServo(5, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
+    AngularServo(0, min_angle=0, max_angle=180), 
+    AngularServo(5, min_angle=0, max_angle=180), 
 
-    AngularServo(6, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
-    AngularServo(13, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
+    AngularServo(6, min_angle=0, max_angle=180), 
+    AngularServo(13, min_angle=0, max_angle=180), 
 
-    AngularServo(19, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
-    AngularServo(26, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000, min_angle=30, max_angle=150), 
+    AngularServo(19, min_angle=0, max_angle=180), 
+    AngularServo(26, min_angle=0, max_angle=180), 
 ]
 
 # Distance Sensor Configuration
