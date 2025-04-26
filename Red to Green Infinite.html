@@ -8,16 +8,17 @@
       margin: 0;
       background-color: red;
       height: 100vh;
+      transition: background-color 0.1s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.1s ease;
-      color: white;
-      font-size: 2em;
-      font-family: sans-serif;
     }
+
     #winnerText {
       display: none;
+      font-size: 3em;
+      font-family: sans-serif;
+      color: white;
     }
   </style>
 </head>
@@ -27,17 +28,18 @@
 
 <script>
   let cycleStarted = false;
+  const winnerText = document.getElementById('winnerText');
 
   function startCycle() {
     const redDuration = Math.floor(Math.random() * 5000) + 2000;
 
     setTimeout(() => {
       document.body.style.backgroundColor = 'green';
-      document.getElementById('winnerText').style.display = 'none';
+      winnerText.style.display = 'none';
 
       setTimeout(() => {
         document.body.style.backgroundColor = 'red';
-        document.getElementById('winnerText').style.display = 'none';
+        winnerText.style.display = 'none';
         startCycle();
       }, 9000);
 
@@ -47,7 +49,7 @@
   document.addEventListener('keydown', function(event) {
     if (event.key === '1') {
       document.body.style.backgroundColor = 'blue';
-      document.getElementById('winnerText').style.display = 'We have a winner!!!';
+      winnerText.style.display = 'block';
     } else if (event.key === '2' && !cycleStarted) {
       cycleStarted = true;
       startCycle();
