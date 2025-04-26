@@ -204,9 +204,17 @@ def test_servos():
     # First reset all servos to neutral position
     for servo in servos:
         print(f"testing servo {servo}, setting angle to 30")
-        servo.angle = 30
+        servos[servo].angle = 30
         time.sleep(0.5)
-    time.sleep(1)  # Give time to reach position
+        print(f"testing servo {servo}, setting angle to 60")
+        servos[servo].angle = 60
+        time.sleep(0.5)
+        print(f"testing servo {servo}, setting angle to 90")
+        servos[servo].angle = 90
+        time.sleep(0.5)
+        print(f"testing servo {servo}, setting angle to 120")
+        servos[servo].angle = 120
+        time.sleep(0.5)
     
     # Test each servo individually with better timing
     print("now testing all 30-degree angles")
