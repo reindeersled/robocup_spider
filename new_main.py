@@ -203,11 +203,13 @@ def test_servos():
     
     # First reset all servos to neutral position
     for servo in servos:
-        servo.angle = 90
+        print(f"testing servo {servo}, setting angle to 30")
+        servo.angle = 30
         time.sleep(0.5)
     time.sleep(1)  # Give time to reach position
     
     # Test each servo individually with better timing
+    print("now testing all 30-degree angles")
     for i, servo in enumerate(servos):
         print(f"Testing servo {i} on GPIO {servo}")
         
@@ -218,7 +220,7 @@ def test_servos():
             time.sleep(1)  # Longer delay for stable movement
             
         # Return to neutral
-        servo.angle = 90
+        servo.angle = 30
         time.sleep(0.5)  # Pause before next servo
         
     print("Servo test complete")
