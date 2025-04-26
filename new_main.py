@@ -198,16 +198,30 @@ def avoid_obstacle_tripod():
         time.sleep(0.2)
 
 def test_servos():
-    """Test all servos individually"""
+    """Improved servo testing function with better timing and power management"""
     print("Testing all servos...")
-    for i, servo in enumerate(servos):
-        print(f"Testing servo {i} on GPIO {servo}")
-        for angle in [60, 90, 120]:
-            servo.angle = angle
-            time.sleep(0.5)
+    
+    # First reset all servos to neutral position
+    for servo in servos:
         servo.angle = 90
-        time.sleep(1)
+    time.sleep(1)  # Give time to reach position
+    
+    # Test each servo individually with better timing
+    for i, servo in enumerate(servos):
+        print(f"Testing servo {i} on GPIO {servo.pin}")
+        
+        # Move smoothly through test positions
+        for angle in [60, 90, 120]:
+            print(f"  Moving to {angle}°")
+            servo.angle = angle
+            time.sleep(1)  # Longer delay for stable movement
+            
+        # Return to neutral
+        servo.angle = 90
+        time.sleep(0.5)  # Pause before next servo
+        
     print("Servo test complete")
+    time.sleep(1)
 
 def main():
     initialize_servos()
