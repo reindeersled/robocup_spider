@@ -29,7 +29,7 @@ servos = [
 ]
 
 # Distance Sensor Configuration
-sensor = DistanceSensor(echo=18, trigger=17)
+sensor = DistanceSensor(echo=23, trigger=24)
 OBSTACLE_THRESHOLD = 10  # 10cm
 
 # Camera Configuration
