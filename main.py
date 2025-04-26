@@ -168,6 +168,37 @@ def avoid_obstacle():
             servos[2].angle = 90   # Left back center
             time.sleep(0.2)
 
+def test_legs_individually():
+    """Test each leg one at a time by moving its servos to 0° and 90°."""
+    for leg_idx in range(len(servos) // 2):  # Loop through each leg (2 servos per leg)
+        side_servo = servos[leg_idx * 2]     # Side-to-side servo (even index)
+        updown_servo = servos[leg_idx * 2 + 1]  # Up-down servo (odd index)
+        
+        print(f"Testing Leg {leg_idx + 1} (GPIOs: {side_servo.pin}, {updown_servo.pin})")
+        
+        # Test side-to-side servo
+        print(" Moving side-to-side servo to 0°")
+        side_servo.angle = 0
+        time.sleep(1)
+        print(" Moving side-to-side servo to 90°")
+        side_servo.angle = 90
+        time.sleep(1)
+        
+        # Test up-down servo
+        print(" Moving up-down servo to 0°")
+        updown_servo.angle = 0
+        time.sleep(1)
+        print(" Moving up-down servo to 90°")
+        updown_servo.angle = 90
+        time.sleep(1)
+        
+        # Reset to 0° before moving to next leg
+        side_servo.angle = 0
+        updown_servo.angle = 0
+        time.sleep(1)  # Pause before next leg
+
+    print("All legs tested!")
+    
 def main():
     starting_pos()
     picam2.start()
