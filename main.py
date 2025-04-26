@@ -115,7 +115,7 @@ def get_random_speed():
     min_speed, max_speed = SPEED_THRESHOLDS[speed_category]
     return random.uniform(min_speed, max_speed)
 
-def spider_walk_forward(speed):
+def walk_forward_tetrapod(speed):
     """Simplified walking forward motion with speed control"""
     # Lift right front and left back legs
     servos[1].angle = 90  # Right front up
@@ -143,6 +143,60 @@ def spider_walk_forward(speed):
     
     # Lower legs
     servos[3].angle = 0   # Left back down
+    time.sleep(0.1 * speed)
+
+def walk_forward_tripod(speed):
+    """
+    Tripod gait for hexapod walking:
+    - Legs move in two alternating tripods (3 legs swing while 3 legs support)
+    - More stable and faster than tetrapod gait
+    """
+    # Define leg groups (assuming servos are ordered as RF, RM, RB, LF, LM, LB)
+    TRIPOD_1 = [0, 4, 8]   # Right Front, Left Middle, Right Back (side-to-side servos)
+    TRIPOD_1_UP = [1, 5, 9] # Corresponding up-down servos
+    TRIPOD_2 = [2, 6, 10]   # Left Front, Right Middle, Left Back (side-to-side)
+    TRIPOD_2_UP = [3, 7, 11] # Corresponding up-down servos
+
+    # Phase 1: Lift and swing TRIPOD_1 (while TRIPOD_2 supports)
+    # Lift tripod 1 legs
+    for up_servo in TRIPOD_1_UP:
+        servos[up_servo].angle = 90  # Lift legs
+    time.sleep(0.1 * speed)
+
+    # Swing tripod 1 legs forward
+    for side_servo in TRIPOD_1:
+        servos[side_servo].angle = 90  # Swing forward
+    time.sleep(0.2 * speed)
+
+    # Lower tripod 1 legs
+    for up_servo in TRIPOD_1_UP:
+        servos[up_servo].angle = 0  # Lower legs
+    time.sleep(0.1 * speed)
+
+    # Phase 2: Lift and swing TRIPOD_2 (while TRIPOD_1 supports)
+    # Lift tripod 2 legs
+    for up_servo in TRIPOD_2_UP:
+        servos[up_servo].angle = 90  # Lift legs
+    time.sleep(0.1 * speed)
+
+    # Swing tripod 2 legs forward (while pushing body forward)
+    for side_servo in TRIPOD_2:
+        servos[side_servo].angle = 90  # Swing forward
+    time.sleep(0.2 * speed)
+
+    # Lower tripod 2 legs
+    for up_servo in TRIPOD_2_UP:
+        servos[up_servo].angle = 0  # Lower legs
+    time.sleep(0.1 * speed)
+
+    # Phase 3: Push back with grounded legs (TRIPOD_1 now supports)
+    for side_servo in TRIPOD_1:
+        servos[side_servo].angle = 0  # Push body forward
+    time.sleep(0.2 * speed)
+
+    # Phase 4: Push back with TRIPOD_2 (optional, for symmetry)
+    for side_servo in TRIPOD_2:
+        servos[side_servo].angle = 0  # Reset position
     time.sleep(0.1 * speed)
 
 def avoid_obstacle():
@@ -235,7 +289,7 @@ def main():
                         if last_color != "Green":
                             current_speed = get_random_speed()
                             print(f"Green light! Walking at speed: {current_speed:.2f}")
-                        spider_walk_forward(current_speed)
+                        walk_forward_tripod(current_speed)
                     elif color_name == "Red":
                         if last_color != "Red":
                             print("Red light! Freeze!")
