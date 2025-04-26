@@ -199,28 +199,60 @@ def walk_forward_tripod(speed):
         servos[side_servo].angle = 0  # Reset position
     time.sleep(0.1 * speed)
 
-def avoid_obstacle():
-    """Avoid obstacle by moving left or right"""
+def avoid_obstacle_tripod():
+    """Side-step left/right using a tripod gait."""
     direction = random.choice(['left', 'right'])
-    print(f"Obstacle detected! Moving {direction}")
-    
-    for _ in range(3):  # Perform 3 avoidance steps
+    print(f"Obstacle detected! Side-stepping {direction} (tripod gait)")
+
+    # Define tripod groups (same as walk_forward_tripod)
+    TRIPOD_1_SIDE = [0, 6, 8]   # RF, RM, RB side-servos
+    TRIPOD_1_UP = [1, 7, 9]      # Corresponding up-servos
+    TRIPOD_2_SIDE = [2, 4, 10]   # LF, LM, LB side-servos
+    TRIPOD_2_UP = [3, 5, 11]     # Corresponding up-servos
+
+    for _ in range(3):  # Repeat for 3 steps
         if direction == 'left':
-            # Move left by stepping right legs differently
-            servos[1].angle = 90  # Right front up
-            servos[0].angle = 45  # Right front to the side
+            # Move LEFT: Push with TRIPOD_1 (right legs)
+            # Lift tripod 1
+            for up_servo in TRIPOD_1_UP:
+                servos[up_servo].angle = 90  # Lift
+            time.sleep(0.1)
+
+            # Angle legs sideways (e.g., 30° for left push)
+            for side_servo in TRIPOD_1_SIDE:
+                servos[side_servo].angle = 30  # Adjust angle as needed
             time.sleep(0.2)
-            servos[1].angle = 0    # Right front down
-            servos[0].angle = 0    # Right front center
+
+            # Lower tripod 1 to push body left
+            for up_servo in TRIPOD_1_UP:
+                servos[up_servo].angle = 0
+            time.sleep(0.1)
+
+            # Reset tripod 2 position (optional)
+            for side_servo in TRIPOD_2_SIDE:
+                servos[side_servo].angle = 90  # Neutral position
+
+        else:  # Move RIGHT
+            # Push with TRIPOD_2 (left legs)
+            for up_servo in TRIPOD_2_UP:
+                servos[up_servo].angle = 90  # Lift
+            time.sleep(0.1)
+
+            # Angle legs sideways (e.g., 150° for right push)
+            for side_servo in TRIPOD_2_SIDE:
+                servos[side_servo].angle = 150  # Adjust angle as needed
             time.sleep(0.2)
-        else:
-            # Move right by stepping left legs differently
-            servos[3].angle = 90  # Left back up
-            servos[2].angle = 135 # Left back to the side
-            time.sleep(0.2)
-            servos[3].angle = 0    # Left back down
-            servos[2].angle = 90   # Left back center
-            time.sleep(0.2)
+
+            # Lower tripod 2 to push body right
+            for up_servo in TRIPOD_2_UP:
+                servos[up_servo].angle = 0
+            time.sleep(0.1)
+
+            # Reset tripod 1 position (optional)
+            for side_servo in TRIPOD_1_SIDE:
+                servos[side_servo].angle = 90  # Neutral position
+
+        time.sleep(0.2)  # Pause between steps
 
 def test_legs_individually():
     """Test each leg one at a time by moving its servos to 0° and 90°."""
@@ -266,7 +298,7 @@ def main():
             # Check for obstacles
             distance = sensor.distance * 100  # Convert to cm
             if distance < OBSTACLE_THRESHOLD:
-                avoid_obstacle()
+                avoid_obstacle_tripod()
                 continue
             
             # Capture and process camera image
