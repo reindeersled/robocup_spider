@@ -201,7 +201,7 @@ def test_servos():
     """Test all servos individually"""
     print("Testing all servos...")
     for i, servo in enumerate(servos):
-        print(f"Testing servo {i} on GPIO {servo.pin}")
+        print(f"Testing servo {i} on GPIO {servo}")
         for angle in [60, 90, 120]:
             servo.angle = angle
             time.sleep(0.5)
