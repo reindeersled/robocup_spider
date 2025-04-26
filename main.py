@@ -301,7 +301,7 @@ def main():
                 avoid_obstacle_tripod()
                 continue
             
-            # Capture and process camera image
+            # Capture and process image without display
             image = picam2.capture_array()
             if image is not None and image.size > 0:
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
@@ -311,12 +311,7 @@ def main():
                     dominant_color = get_dominant_color(roi)
                     color_name = classify_color(dominant_color)
                     
-                    # Display the frame 
-                    cv2.putText(image, f"Color: {color_name}", (20, 50), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                    cv2.imshow("Spider Bot View", image)
-                    
-                    # Game logic based on color
+                    # Game logic
                     if color_name == "Green":
                         if last_color != "Green":
                             current_speed = get_random_speed()
@@ -325,7 +320,6 @@ def main():
                     elif color_name == "Red":
                         if last_color != "Red":
                             print("Red light! Freeze!")
-                        # Small chance to twitch and die
                         if random.random() < TWITCH_CHANCE:
                             random_twitch()
                             spider_die()
@@ -336,9 +330,8 @@ def main():
                     
                     last_color = color_name
             
-            # Exit on 'q' key
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # Exit on Ctrl+C
+            time.sleep(0.1)  # Small delay to prevent CPU overload
     
     except KeyboardInterrupt:
         print("\nProgram stopped by user")
