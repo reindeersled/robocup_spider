@@ -260,7 +260,7 @@ def test_legs_individually():
         side_servo = servos[leg_idx * 2]     # Side-to-side servo (even index)
         updown_servo = servos[leg_idx * 2 + 1]  # Up-down servo (odd index)
         
-        print(f"Testing Leg {leg_idx + 1} (GPIOs: {side_servo.pin}, {updown_servo.pin})")
+        print(f"Testing Leg {leg_idx + 1} (GPIOs: {side_servo}, {updown_servo})")
         
         # Test side-to-side servo
         print(" Moving side-to-side servo to 0°")
