@@ -25,22 +25,16 @@ servos = [
     AngularServo(19, min_angle=0, max_angle=180), 
     AngularServo(26, min_angle=0, max_angle=180), 
 ]
-# List of all GPIO pins used for PWM (BCM numbering)
-PWM_PINS = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
 
 def initialize_pins():
-    devices = []
-    for pin in PWM_PINS:
+    # Initialize all PWM pins as low outputs first
+    pwm_pins = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
+    for pin in pwm_pins:
         try:
-            dev = OutputDevice(pin, initial_value=False)
-            devices.append(dev)
-            print(f"Initialized GPIO {pin} as LOW output")
-        except Exception as e:
-            print(f"Error initializing GPIO {pin}: {str(e)}")
-    
-    # Keep pins low for 5 seconds (adjust as needed)
-    time.sleep(5)
-    print("GPIO initialization complete")
+            OutputDevice(pin, initial_value=False)
+            print(f"Initialized GPIO {pin} as LOW")
+        except:
+            print(f"Failed to initialize GPIO {pin}")
 
 if __name__ == "__main__":
     # Uncomment to test servos individually before main program
