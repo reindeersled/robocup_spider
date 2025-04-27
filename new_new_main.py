@@ -24,11 +24,44 @@ def create_servos():
         AngularServo(2, min_angle=0, max_angle=180, 
                    min_pulse_width=0.0005, max_pulse_width=0.0025,
                    pin_factory=factory),
-        # Repeat for all servos...
         AngularServo(3, min_angle=0, max_angle=180,
                    min_pulse_width=0.0005, max_pulse_width=0.0025,
                    pin_factory=factory),
-        # Add remaining 10 servos with same parameters
+
+        AngularServo(17, min_angle=0, max_angle=180, 
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+        AngularServo(27, min_angle=0, max_angle=180,
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+
+        AngularServo(10, min_angle=0, max_angle=180, 
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+        AngularServo(9, min_angle=0, max_angle=180,
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+
+        AngularServo(0, min_angle=0, max_angle=180, 
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+        AngularServo(5, min_angle=0, max_angle=180,
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+
+        AngularServo(6, min_angle=0, max_angle=180, 
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+        AngularServo(13, min_angle=0, max_angle=180,
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+
+        AngularServo(19, min_angle=0, max_angle=180, 
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory),
+        AngularServo(26, min_angle=0, max_angle=180,
+                   min_pulse_width=0.0005, max_pulse_width=0.0025,
+                   pin_factory=factory)
     ]
 
 def test_servos(servos):
