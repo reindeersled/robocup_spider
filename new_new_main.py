@@ -345,7 +345,7 @@ def main():
                         if last_color != "Green":
                             current_speed = get_random_speed()
                             print(f"Green light! Walking at speed: {current_speed:.2f}")
-                        walk_forward_tripod(current_speed)
+                        walk_forward_tripod2(current_speed)
                     elif color_name == "Red":
                         if last_color != "Red":
                             print("Red light! Freeze!")
