@@ -96,7 +96,7 @@ def dance_code_twist(duration):
     while time.time() - start_time < duration:
         # First twist position
         for i in range(0, 12): 
-            if i % 2 != 0:  # side-to-side servos
+            if i % 2 == 0:  # side-to-side servos
                 set_servo_angle(i, 150)
             else:  # up-down servos point down
                 set_servo_angle(i, 20)
@@ -104,7 +104,7 @@ def dance_code_twist(duration):
         
         # Second twist position
         for i in range(0, 12):
-            if i % 2 != 0: 
+            if i % 2 == 0: 
                 set_servo_angle(i, 30)
             else: 
                 set_servo_angle(i, 20)
@@ -118,16 +118,16 @@ def dance_code_down():
 
     # move legs up
     for i in range(0, 12):
-        if i % 2 == 0:  # up-down legs stay up
+        if i % 2 != 0:  # up-down legs stay up
             set_servo_angle(i, 120)
 
     # Wave once (remove the while True)
     for i in range(0, 12):
-        if i % 2 != 0:  # side-to-side servos wave
+        if i % 2 == 0:  # side-to-side servos wave
             set_servo_angle(i, 120)
     time.sleep(0.5)
     for i in range(0, 12):
-        if i % 2 != 0: 
+        if i % 2 == 0: 
             set_servo_angle(i, 20)
     time.sleep(0.5)
             
