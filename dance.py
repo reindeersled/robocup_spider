@@ -61,33 +61,6 @@ def set_servo_angle(servo_index, angle):
     adjusted_angle = max(0, min(180, adjusted_angle))
     servos[servo_index].angle = adjusted_angle
 
-def calibrate_servos():
-    """Interactive calibration routine"""
-    print("\n=== SERVO CALIBRATION MODE ===")
-    print("For each servo, enter offset needed to make it point forward/up")
-    
-    for i in range(len(servos)):
-        leg_num = (i // 2) + 1
-        servo_type = "side-to-side" if i % 2 == 0 else "up-down"
-        
-        print(f"\nCalibrating Leg {leg_num} {servo_type} (Servo {i})")
-        set_servo_angle(i, 90)
-        time.sleep(1)
-        
-        while True:
-            offset = input(f"Current offset: {servo_offsets[i]}° "
-                         f"(Enter new offset or 'c' to continue): ")
-            if offset.lower() == 'c':
-                break
-            try:
-                servo_offsets[i] = int(offset)
-                set_servo_angle(i, 90)
-            except ValueError:
-                print("Please enter a number or 'c'")
-    
-    print("\nCalibration complete! Offsets saved:")
-    print(servo_offsets)
-
 def initialize_servos():
     """Initialize all servos to default positions"""
     print("Initializing servos to default positions...")
