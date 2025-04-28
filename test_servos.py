@@ -34,30 +34,30 @@ def test_servos():
 
     # Phase 1: Lift and swing first tripod
     for up_servo in TRIPOD_A_UP:
-        set_servo_angle(up_servo, 80)  # Lift legs
+        set_servo_angle(up_servo, 120)  # Lift legs
     time.sleep(1 * speed)
     
     for side_servo in TRIPOD_A:
-        set_servo_angle(side_servo, 120)  # Swing forward
+        set_servo_angle(side_servo, 0)  # Swing forward
     time.sleep(1 * speed)
     
     # Phase 2: Lower first tripod while lifting second
     for up_servo in TRIPOD_A_UP:
-        set_servo_angle(up_servo, 40)  # Partial lower for pushing
+        set_servo_angle(up_servo, 20)  # Partial lower for pushing
     time.sleep(1 * speed)
     
     for up_servo in TRIPOD_B_UP:
-        set_servo_angle(up_servo, 80)  # Lift opposite tripod
+        set_servo_angle(up_servo, 120)  # Lift opposite tripod
     time.sleep(1 * speed)
     
     # Phase 3: Swing second tripod forward
     for side_servo in TRIPOD_B:
-        set_servo_angle(side_servo, 60)  # Swing forward opposite side
+        set_servo_angle(side_servo, 120)  # Swing forward opposite side
     time.sleep(1 * speed)
     
     # Phase 4: Lower second tripod
     for up_servo in TRIPOD_B_UP:
-        set_servo_angle(up_servo, 40)  # Partial lower
+        set_servo_angle(up_servo, 20)  # Partial lower
     time.sleep(1 * speed)
     
     # Phase 5: Return to neutral position
