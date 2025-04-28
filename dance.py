@@ -83,36 +83,69 @@ def test_servos():
         set_servo_angle(i, 90)
         time.sleep(0.5)
 
-def dance_code():
-    print("\nDancing!")
+def dance_code_twist(duration):
+    print("\nTwisting!")
+    start_time = time.time()
 
     #left legs
     # 30 - 90 - 150 go DOWN
 
     #right legs
     # 30 - 90 - 150 go FORWARD
+    
+    while time.time() - start_time < duration:
+        # First twist position
+        for i in range(0, 12): 
+            if i % 2 != 0:  # side-to-side servos
+                set_servo_angle(i, 150)
+            else:  # up-down servos point down
+                set_servo_angle(i, 20)
+        time.sleep(0.5)
+        
+        # Second twist position
+        for i in range(0, 12):
+            if i % 2 != 0: 
+                set_servo_angle(i, 30)
+            else: 
+                set_servo_angle(i, 20)
+        time.sleep(0.5)
 
-    for i in range(0, 12): 
-      if i % 2 != 0:
-        set_servo_angle(i, 150)
-      else: # make the up-down legs point down
-          set_servo_angle(i, 20)
-    time.sleep(0.5)
-
+def dance_code_down():
+    # move the legs to resting
     for i in range(0, 12):
-      if i % 2 != 0: 
-        set_servo_angle(i, 0)
-      else: 
-          set_servo_angle(i, 20)
+        set_servo_angle(i, 90)
     time.sleep(0.5)
+
+    # move legs up
+    for i in range(0, 12):
+        if i % 2 == 0:  # up-down legs stay up
+            set_servo_angle(i, 120)
+
+    # Wave once (remove the while True)
+    for i in range(0, 12):
+        if i % 2 != 0:  # side-to-side servos wave
+            set_servo_angle(i, 120)
+    time.sleep(0.5)
+    for i in range(0, 12):
+        if i % 2 != 0: 
+            set_servo_angle(i, 20)
+    time.sleep(0.5)
+            
+    
 
 def main():
     initialize_pins()
     initialize_servos()
   
     try:
-        while True:
-            dance_code()
+        while True:  # Remove this if you want it to run just once
+            # Twist for 20 seconds
+            dance_code_twist(20)
+            
+            # Then dance down for 10 seconds
+            start_time = time.time()
+            while time.time() - start_time < 10:
+                dance_code_down()
     
     except KeyboardInterrupt:
         print("\nProgram stopped by user")
