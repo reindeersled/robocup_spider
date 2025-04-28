@@ -59,8 +59,9 @@ def test_servos():
     for up_servo in TRIPOD_B_UP:
         set_servo_angle(up_servo, 20)  # Partial lower
     time.sleep(1 * speed)
-    
-    # Phase 5: Return to neutral position
-    for i in range(12):
-        set_servo_angle(i, 90)  # Center all servos
+
+    # Phase 5: bring second tripod back
+    for up_servo in TRIPOD_B:
+        set_servo_angle(up_servo, 20)  # Partial lower
     time.sleep(1 * speed)
+
