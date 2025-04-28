@@ -139,12 +139,12 @@ def main():
   
     try:
         while True:  # Remove this if you want it to run just once
-            # Twist for 20 seconds
-            dance_code_twist(20)
+            # Twist for 70 seconds
+            dance_code_twist(70)
             
-            # Then dance down for 10 seconds
+            # Then dance down for the remaining seconds (total 141)
             start_time = time.time()
-            while time.time() - start_time < 10:
+            while time.time() - start_time < 71:
                 dance_code_down()
     
     except KeyboardInterrupt:
