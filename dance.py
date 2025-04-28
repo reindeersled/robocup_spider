@@ -121,7 +121,7 @@ def dance_code_down():
         if i % 2 != 0:  # up-down legs stay up
             set_servo_angle(i, 120)
 
-    # Wave once (remove the while True)
+    # Wave once
     for i in range(0, 12):
         if i % 2 == 0:  # side-to-side servos wave
             set_servo_angle(i, 120)
@@ -130,7 +130,6 @@ def dance_code_down():
         if i % 2 == 0: 
             set_servo_angle(i, 20)
     time.sleep(0.5)
-            
     
 
 def main():
@@ -139,13 +138,19 @@ def main():
   
     try:
         while True:  # Remove this if you want it to run just once
-            # Twist for 70 seconds
-            dance_code_twist(70)
+            # total 141 seconds
             
-            # Then dance down for the remaining seconds (total 141)
+            # Twist for 50 seconds
+            dance_code_twist(50)
+            
+            # Then dance down for 60 seconds 
             start_time = time.time()
-            while time.time() - start_time < 71:
+            while time.time() - start_time < 60:
                 dance_code_down()
+
+            start_time = time.time()
+            while time.time() - start_time < 60:
+                walk_forward_tripod2(0.5)
     
     except KeyboardInterrupt:
         print("\nProgram stopped by user")
