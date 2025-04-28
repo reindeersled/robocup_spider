@@ -118,15 +118,19 @@ def dance_code():
 
     #right legs
     # 30 - 90 - 150 go FORWARD
-  
+
     for i in range(0, 12): 
       if i % 2 != 0:
         set_servo_angle(i, 150)
+      else: # make the up-down legs point down
+          set_servo_angle(i, 20)
     time.sleep(0.5)
 
     for i in range(0, 12):
       if i % 2 != 0: 
         set_servo_angle(i, 0)
+      else: 
+          set_servo_angle(i, 20)
     time.sleep(0.5)
 
 def main():
