@@ -1,0 +1,150 @@
+import cv2
+import time
+import random
+import numpy as np
+from picamera2 import Picamera2
+from gpiozero import AngularServo, DistanceSensor, OutputDevice
+from math import sin, pi
+
+# List of GPIO pins
+pwm_pins = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
+
+def initialize_pins():
+    """Initialize all PWM pins as LOW outputs"""
+    devices = []
+    for pin in pwm_pins:
+        try:
+            device = OutputDevice(pin, initial_value=False)
+            devices.append(device)
+            print(f"Successfully initialized GPIO {pin} as LOW")
+        except Exception as e:
+            print(f"Failed to initialize GPIO {pin}: {e}")
+    time.sleep(1)  # Let them stay LOW for a moment
+    for device in devices:
+        device.close()  # Free the pins for AngularServo
+    print("All pins initialized and released")
+
+# Servo Configuration
+servos = [
+    AngularServo(2, min_angle=0, max_angle=180),  # Leg 1 side-to-side
+    AngularServo(3, min_angle=0, max_angle=180),  # Leg 1 up-down
+    AngularServo(17, min_angle=0, max_angle=180), 
+    AngularServo(27, min_angle=0, max_angle=180), 
+    AngularServo(10, min_angle=0, max_angle=180), 
+    AngularServo(9, min_angle=0, max_angle=180), 
+    AngularServo(0, min_angle=0, max_angle=180), 
+    AngularServo(5, min_angle=0, max_angle=180), 
+    AngularServo(6, min_angle=0, max_angle=180), 
+    AngularServo(13, min_angle=0, max_angle=180), 
+    AngularServo(19, min_angle=0, max_angle=180), 
+    AngularServo(26, min_angle=0, max_angle=180), 
+]
+
+# Tripod gait leg groups (indices match servo list)
+TRIPOD_1 = [0, 4, 8]    # Leg1, Leg3, Leg5 (side-to-side)
+TRIPOD_1_UP = [1, 5, 9]  # Corresponding up-down servos
+TRIPOD_2 = [2, 6, 10]    # Leg2, Leg4, Leg6
+TRIPOD_2_UP = [3, 7, 11]
+
+# Distance Sensor Configuration
+sensor = DistanceSensor(echo=23, trigger=24)
+OBSTACLE_THRESHOLD = 10  # 10cm
+
+# Camera Configuration
+picam2 = Picamera2()
+config = picam2.create_preview_configuration(main={"size": (640, 480)})
+picam2.configure(config)
+
+def set_servo_angle(servo_index, angle):
+    """Set servo angle with calibration offset"""
+    adjusted_angle = angle + servo_offsets[servo_index]
+    adjusted_angle = max(0, min(180, adjusted_angle))
+    servos[servo_index].angle = adjusted_angle
+
+def calibrate_servos():
+    """Interactive calibration routine"""
+    print("\n=== SERVO CALIBRATION MODE ===")
+    print("For each servo, enter offset needed to make it point forward/up")
+    
+    for i in range(len(servos)):
+        leg_num = (i // 2) + 1
+        servo_type = "side-to-side" if i % 2 == 0 else "up-down"
+        
+        print(f"\nCalibrating Leg {leg_num} {servo_type} (Servo {i})")
+        set_servo_angle(i, 90)
+        time.sleep(1)
+        
+        while True:
+            offset = input(f"Current offset: {servo_offsets[i]}° "
+                         f"(Enter new offset or 'c' to continue): ")
+            if offset.lower() == 'c':
+                break
+            try:
+                servo_offsets[i] = int(offset)
+                set_servo_angle(i, 90)
+            except ValueError:
+                print("Please enter a number or 'c'")
+    
+    print("\nCalibration complete! Offsets saved:")
+    print(servo_offsets)
+
+def initialize_servos():
+    """Initialize all servos to default positions"""
+    print("Initializing servos to default positions...")
+    for i in range(len(servos)):
+        set_servo_angle(i, 90)
+    time.sleep(1)
+
+def test_servos():
+    """Test all servos with current calibration"""
+    print("\nTesting all servos...")
+    for i in range(len(servos)):
+        leg_num = (i // 2) + 1
+        servo_type = "side-to-side" if i % 2 == 0 else "up-down"
+        print(f"Testing Leg {leg_num} {servo_type}")
+        
+        for angle in [30, 90, 150]:
+            set_servo_angle(i, angle)
+            time.sleep(0.5)
+        
+        set_servo_angle(i, 90)
+        time.sleep(0.5)
+
+def dance_code():
+    print("\nDancing!")
+
+    #left legs
+    # 30 - 90 - 150 go DOWN
+
+    #right legs
+    # 30 - 90 - 150 go FORWARD
+  
+    for i in range(0, 12): 
+      if i % 2 != 0:
+        set_servo_angle(i, 150)
+    time.sleep(0.5)
+
+    for i in range(0, 12):
+      if i % 2 != 0: 
+        set_servo_angle(i, 0)
+    time.sleep(0.5)
+
+def main():
+    initialize_pins()
+    initialize_servos()
+  
+    try:
+        while True:
+            dance_code()
+    
+    except KeyboardInterrupt:
+        print("\nProgram stopped by user")
+    finally:
+        picam2.stop()
+        initialize_servos()
+
+if __name__ == "__main__":
+    # Uncomment what you need:
+    # calibrate_servos()  # Run first time
+    # test_servos()       # Test after calibration
+    main()               # Run main program
