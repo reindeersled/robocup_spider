@@ -1,0 +1,107 @@
+import pigpio
+import time
+
+# ========== Configuration ==========
+# 12 GPIO pins connected to servos, in order:
+# [L1_side, L1_up, L2_side, L2_up, L3_side, L3_up, R1_side, R1_up, R2_side, R2_up, R3_side, R3_up]
+servo_pins = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
+
+# Offsets for each servo to correct their center position (0 if uncalibrated)
+servo_offsets = [0] * 12  # Example: [0, 5, -10, ...]  Adjust as needed
+
+# Pulse width range for most servos: 500–2500 µs (mapped from 0–180 degrees)
+def angle_to_pulsewidth(angle):
+    """Convert angle (0–180) to pulse width (µs)."""
+    return int(500 + (angle / 180.0) * 2000)
+
+# ========== Initialize pigpio ==========
+pi = pigpio.pi()
+if not pi.connected:
+    print("Could not connect to pigpio daemon.")
+    exit()
+
+# ========== Helper Functions ==========
+def set_servo_angle(index, angle):
+    """Set servo by index (0–11) to specified angle."""
+    angle = max(0, min(180, angle))  # Clamp angle
+    pulse = angle_to_pulsewidth(angle) + servo_offsets[index]
+    pi.set_servo_pulsewidth(servo_pins[index], pulse)
+
+def center_all_servos():
+    """Move all servos to neutral (90 degrees)."""
+    for i in range(12):
+        set_servo_angle(i, 90)
+    time.sleep(0.5)
+
+def shutdown_servos():
+    """Disable all servo signals (safe shutdown)."""
+    for pin in servo_pins:
+        pi.set_servo_pulsewidth(pin, 0)
+
+# ========== Tripod Gait ==========
+# Tripod A: Left 1, Left 3, Right 2
+TRIPOD_A = [0, 4, 8]      # Side movement servos
+TRIPOD_A_UP = [1, 5, 9]   # Lifting servos
+
+# Tripod B: Left 2, Right 1, Right 3
+TRIPOD_B = [2, 6, 10]
+TRIPOD_B_UP = [3, 7, 11]
+
+def walk_tripod(speed=0.5):
+    """One step of tripod gait with speed factor (lower = faster)."""
+    lift = 120  # Up position
+    drop = 60   # Down position
+    forward = 120
+    backward = 60
+    neutral = 90
+
+    # --- Tripod A step ---
+    for i in TRIPOD_A_UP:
+        set_servo_angle(i, lift)
+    time.sleep(0.15 * speed)
+
+    for i in TRIPOD_A:
+        set_servo_angle(i, forward)
+    time.sleep(0.2 * speed)
+
+    for i in TRIPOD_A_UP:
+        set_servo_angle(i, drop)
+    time.sleep(0.1 * speed)
+
+    # --- Tripod B step ---
+    for i in TRIPOD_B_UP:
+        set_servo_angle(i, lift)
+    time.sleep(0.15 * speed)
+
+    for i in TRIPOD_B:
+        set_servo_angle(i, forward)
+    time.sleep(0.2 * speed)
+
+    for i in TRIPOD_B_UP:
+        set_servo_angle(i, drop)
+    time.sleep(0.1 * speed)
+
+    # Return all side servos to neutral
+    for i in TRIPOD_A + TRIPOD_B:
+        set_servo_angle(i, neutral)
+    time.sleep(0.2 * speed)
+
+# ========== Main Program ==========
+if __name__ == "__main__":
+    try:
+        print("Centering all servos...")
+        center_all_servos()
+        time.sleep(1)
+
+        print("Starting tripod walk. Press Ctrl+C to stop.")
+        for _ in range(10):  # Walk 10 steps
+            walk_tripod(speed=0.5)
+
+    except KeyboardInterrupt:
+        print("\nInterrupted by user.")
+
+    finally:
+        print("Shutting down...")
+        shutdown_servos()
+        pi.stop()
+        print("Done.")
