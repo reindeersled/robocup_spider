@@ -1,0 +1,47 @@
+import pigpio
+import time
+import sys
+
+# Define servo GPIO pins (adjust if needed)
+servo_pins = [4, 17, 27, 22, 5, 6, 13, 19, 26, 18, 23, 24]
+
+# Set up pigpio
+pi = pigpio.pi()
+if not pi.connected:
+    print("Failed to connect to pigpio daemon. Is it running with 'sudo pigpiod'?")
+    sys.exit(1)
+
+def angle_to_pulse(angle):
+    # Convert angle (0–180) to pulse width (500–2500us)
+    return int(500 + (angle / 180.0) * 2000)
+
+def set_servo_angle(index, angle):
+    if 0 <= index < len(servo_pins):
+        pulse = angle_to_pulse(angle)
+        print(f"[DEBUG] Setting servo {index} (GPIO {servo_pins[index]}) to angle {angle} (pulse {pulse})")
+        pi.set_servo_pulsewidth(servo_pins[index], pulse)
+    else:
+        print(f"[ERROR] Invalid servo index: {index}")
+
+def center_all_servos():
+    print("Centering servos one at a time...")
+    for i in range(len(servo_pins)):
+        set_servo_angle(i, 90)
+        time.sleep(0.5)  # Let each move fully before the next
+
+def shutdown_servos():
+    print("Shutting down...")
+    for pin in servo_pins:
+        print(f"[DEBUG] Attempting to shut down servo on GPIO {pin}")
+        result = pi.set_servo_pulsewidth(pin, 0)
+        print(f"[DEBUG] Shutdown result for GPIO {pin}: {result}")
+    pi.stop()
+    print("pigpio stopped.")
+
+# Main logic
+try:
+    center_all_servos()
+except Exception as e:
+    print(f"[ERROR] Exception during movement: {e}")
+finally:
+    shutdown_servos()
