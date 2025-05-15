@@ -1,0 +1,57 @@
+import time
+import pigpio
+
+# Define GPIO pins for 12 servos (adjust if needed)
+servo_pins = [4, 17, 27, 22, 5, 6, 13, 19, 26, 18, 23, 24]
+
+# Initialize pigpio
+pi = pigpio.pi()
+
+if not pi.connected:
+    print("Failed to connect to pigpio daemon!")
+    exit()
+
+# Function to convert angle (0-180) to pulse width
+def angle_to_pulse(angle):
+    pulse = int((angle / 180.0) * 1000 + 1000)  # range 1000-2000 µs
+    return pulse
+
+# Set a servo to a specific angle
+def set_servo_angle(index, angle):
+    pulse = angle_to_pulse(angle)
+    pin = servo_pins[index]
+    print(f"[DEBUG] Setting servo {index} (GPIO {pin}) to angle {angle} (pulse {pulse})")
+    pi.set_servo_pulsewidth(pin, pulse)
+
+# Center all servos (90 degrees)
+def center_all_servos():
+    print("Centering all servos...")
+    for i in range(len(servo_pins)):
+        set_servo_angle(i, 90)
+        time.sleep(0.1)  # small delay to reduce current draw
+
+# Turn off all servos (set pulse to 0)
+def shutdown_servos():
+    print("Shutting down...")
+    for pin in servo_pins:
+        try:
+            print(f"[DEBUG] Attempting to shut down servo on GPIO {pin}")
+            result = pi.set_servo_pulsewidth(pin, 0)
+            print(f"[DEBUG] Shutdown result for GPIO {pin}: {result}")
+        except Exception as e:
+            print(f"[ERROR] Failed to shut down GPIO {pin}: {e}")
+
+# Main block
+if __name__ == "__main__":
+    try:
+        center_all_servos()
+        time.sleep(2)
+        # Add robot movement logic here
+    except KeyboardInterrupt:
+        print("Interrupted by user.")
+    except Exception as e:
+        print(f"[ERROR] Unexpected error: {e}")
+    finally:
+        shutdown_servos()
+        pi.stop()
+        print("pigpio stopped.")
