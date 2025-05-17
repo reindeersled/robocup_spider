@@ -1,0 +1,118 @@
+import time
+import random
+import pigpio
+from picamera2 import Picamera2
+import cv2
+import numpy as np
+
+# GPIO pin order: hip1, knee1, hip2, knee2, ..., hip6, knee6
+servo_pins = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
+hip_indices = [0, 2, 4, 6, 8, 10]
+knee_indices = [1, 3, 5, 7, 9, 11]
+
+# Initialize pigpio
+pi = pigpio.pi()
+if not pi.connected:
+    raise Exception("Failed to connect to pigpio daemon")
+
+# Convert angle to pulse width
+def angle_to_pulse(angle):
+    return int(500 + (angle / 180.0) * 2000)
+
+# Set a single servo
+def set_servo(index, angle):
+    pulse = angle_to_pulse(angle)
+    pi.set_servo_pulsewidth(servo_pins[index], pulse)
+
+# Set multiple servos
+def set_servos(indices, angles):
+    for idx, angle in zip(indices, angles):
+        set_servo(idx, angle)
+
+# Walk step: lift knees, swing hips, lower knees, reset hips
+def walk_step(group):
+    hip_forward = 120
+    hip_neutral = 90
+    knee_up = 60
+    knee_down = 90
+
+    hips = [hip_indices[i] for i in group]
+    knees = [knee_indices[i] for i in group]
+
+    set_servos(knees, [knee_up] * 3)
+    time.sleep(0.2)
+    set_servos(hips, [hip_forward] * 3)
+    time.sleep(0.2)
+    set_servos(knees, [knee_down] * 3)
+    time.sleep(0.2)
+    set_servos(hips, [hip_neutral] * 3)
+    time.sleep(0.2)
+
+# Twitch behavior
+def twitch():
+    print("** Twitching **")
+    for i in range(12):
+        set_servo(i, 60)
+    time.sleep(0.5)
+    for i in range(12):
+        set_servo(i, 120)
+    time.sleep(0.5)
+
+# Center all servos
+def center_all():
+    print("Centering servos...")
+    for i in range(12):
+        set_servo(i, 90)
+
+# Stop all servos
+def stop_all():
+    for pin in servo_pins:
+        pi.set_servo_pulsewidth(pin, 0)
+
+# Camera setup
+picam2 = Picamera2()
+picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (320, 240)}))
+picam2.start()
+
+# Detect red or green
+def detect_color(frame, color):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
+    if color == 'green':
+        lower = np.array([40, 50, 50])
+        upper = np.array([80, 255, 255])
+        mask = cv2.inRange(hsv, lower, upper)
+    elif color == 'red':
+        lower1 = np.array([0, 100, 100])
+        upper1 = np.array([10, 255, 255])
+        lower2 = np.array([160, 100, 100])
+        upper2 = np.array([180, 255, 255])
+        mask1 = cv2.inRange(hsv, lower1, upper1)
+        mask2 = cv2.inRange(hsv, lower2, upper2)
+        mask = mask1 | mask2
+    else:
+        return False
+    return cv2.countNonZero(mask) > 1000
+
+# Main control loop
+try:
+    center_all()
+    shutdown = False
+    print("Starting behavior loop...")
+    while not shutdown:
+        frame = picam2.capture_array()
+        if detect_color(frame, 'green'):
+            walk_step([0, 2, 4])
+            walk_step([1, 3, 5])
+        elif detect_color(frame, 'red'):
+            if random.random() < 0.05:
+                twitch()
+                shutdown = True
+            else:
+                print("Red detected. Waiting...")
+                time.sleep(0.2)
+        else:
+            time.sleep(0.1)
+finally:
+    print("Shutting down...")
+    stop_all()
+    pi.stop()
