@@ -254,19 +254,34 @@ def main():
                         cv2.putText(image, f"Color: {color_name}", (20, 50), 
                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         cv2.imshow("RPi Camera Color Detection", image)
-                        if color_name = "Red":
-                            
-                        elif color_name = "Green":
+                        
+                        if color_name == "Green":
                             dance_code_twist(5)
                             time.sleep(0.1)
-                        elif color_name = "Blue":
+                        elif color_name == "Blue":
                             break
 
 
             # Twist for 50 seconds
 
 
+            except Exception as frame_error:
+                print(f"Frame processing error: {frame_error}")
+                continue
+            
+            # Break if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
+    except Exception as e:
+        print(f"Camera initialization error: {e}")
+    finally:
+        initialize_servos()
+        print("Stopping camera...")
+        if picam2 is not None:
+            picam2.stop()
+        cv2.destroyAllWindows()
+        
     except KeyboardInterrupt:
         print("\nProgram stopped by user")
     finally:
