@@ -1,0 +1,127 @@
+import os
+import time
+import random
+import cv2
+import numpy as np
+import pigpio
+
+# Start pigpio daemon if it's not running
+os.system("sudo pigpiod")
+time.sleep(1)
+
+# Connect to pigpio
+pi = pigpio.pi()
+if not pi.connected:
+    print("Could not connect to pigpio daemon.")
+    exit()
+
+# GPIO order: hip1, knee1, hip2, knee2, ..., hip6, knee6
+servo_pins = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
+
+# Constants for servo pulse width
+MIN_PULSE = 500
+MAX_PULSE = 2500
+
+# Setup camera
+cam = cv2.VideoCapture(0)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+
+# One-time twitch flag
+has_twiched = False
+
+def angle_to_pulse(angle):
+    return int(MIN_PULSE + (angle / 180.0) * (MAX_PULSE - MIN_PULSE))
+
+def set_servo(index, angle):
+    pulse = angle_to_pulse(angle)
+    pi.set_servo_pulsewidth(servo_pins[index], pulse)
+
+def stop_all():
+    for pin in servo_pins:
+        pi.set_servo_pulsewidth(pin, 0)
+    pi.stop()
+
+def center_all():
+    for i in range(len(servo_pins)):
+        set_servo(i, 90)
+    time.sleep(1)
+
+def walk_cycle():
+    # Group 1: hip1, hip3, hip5 and their knees
+    for i in range(0, 12, 4):
+        set_servo(i + 1, 45)  # lift knee
+    time.sleep(0.1)
+    for i in range(0, 12, 4):
+        set_servo(i, 60)  # move hip
+    time.sleep(0.1)
+    for i in range(0, 12, 4):
+        set_servo(i + 1, 90)  # lower knee
+    time.sleep(0.2)
+
+    # Group 2: hip2, hip4, hip6 and their knees
+    for i in range(2, 12, 4):
+        set_servo(i + 1, 45)
+    time.sleep(0.1)
+    for i in range(2, 12, 4):
+        set_servo(i, 120)
+    time.sleep(0.1)
+    for i in range(2, 12, 4):
+        set_servo(i + 1, 90)
+    time.sleep(0.2)
+
+def twitch():
+    for i in range(len(servo_pins)):
+        set_servo(i, random.choice([60, 120]))
+    time.sleep(1)
+    center_all()
+
+def detect_color(frame):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Green
+    lower_green = np.array([40, 70, 70])
+    upper_green = np.array([90, 255, 255])
+    green_mask = cv2.inRange(hsv, lower_green, upper_green)
+
+    # Red (2 ranges)
+    lower_red1 = np.array([0, 70, 50])
+    upper_red1 = np.array([10, 255, 255])
+    lower_red2 = np.array([170, 70, 50])
+    upper_red2 = np.array([180, 255, 255])
+    red_mask = cv2.inRange(hsv, lower_red1, upper_red1) + cv2.inRange(hsv, lower_red2, upper_red2)
+
+    green_detected = cv2.countNonZero(green_mask) > 500
+    red_detected = cv2.countNonZero(red_mask) > 500
+
+    return green_detected, red_detected
+
+# Main loop
+try:
+    center_all()
+    print("Ready. Green = Walk | Red = Stop | 5% chance to Twitch and freeze")
+
+    while True:
+        ret, frame = cam.read()
+        if not ret:
+            print("Camera read failed.")
+            break
+
+        green, red = detect_color(frame)
+
+        if red:
+            if not has_twiched and random.random() < 0.05:
+                twitch()
+                has_twiched = True
+            continue
+
+        if green and not has_twiched:
+            walk_cycle()
+
+except KeyboardInterrupt:
+    print("Exiting...")
+
+finally:
+    stop_all()
+    cam.release()
+    cv2.destroyAllWindows()
