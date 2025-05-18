@@ -30,38 +30,37 @@
 
 <div id="winnerText">We have a winner!!!</div>
 
-<!-- Audio element for the Squid Game music -->
-<audio id="redLightMusic" preload="auto">
-  <source src="squid_game_red_light.mp3" type="audio/mpeg">
+<!-- Green Light Music (Squid Game) -->
+<audio id="greenLightMusic" preload="auto">
+  <source src="squid_game_green_light.mp3" type="audio/mpeg">
   Your browser does not support the audio element.
 </audio>
 
 <script>
   let cycleStarted = false;
   const winnerText = document.getElementById('winnerText');
-  const redLightMusic = document.getElementById('redLightMusic');
+  const greenLightMusic = document.getElementById('greenLightMusic');
 
   function startCycle() {
     const redDuration = Math.floor(Math.random() * 5000) + 2000;
 
-    // RED light phase
+    // RED phase (silent)
     document.body.style.backgroundColor = 'red';
     winnerText.style.display = 'none';
-    redLightMusic.currentTime = 0;
-    redLightMusic.play();
+    greenLightMusic.pause();
+    greenLightMusic.currentTime = 0;
 
     setTimeout(() => {
-      // GREEN light phase
+      // GREEN phase with music
       document.body.style.backgroundColor = 'green';
       winnerText.style.display = 'none';
-      redLightMusic.pause();
-      redLightMusic.currentTime = 0;
+      greenLightMusic.play();
 
       setTimeout(() => {
-        startCycle();
+        startCycle(); // repeat
       }, 9000); // green light duration
 
-    }, redDuration);
+    }, redDuration); // red light random duration
   }
 
   document.addEventListener('keydown', function(event) {
