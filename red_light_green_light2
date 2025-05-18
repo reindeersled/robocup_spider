@@ -2,89 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Red Light Green Light Game</title>
+  <title>Red Light Green Light</title>
   <style>
     body {
       margin: 0;
       background-color: red;
       height: 100vh;
-      transition: background-color 0.1s ease;
       display: flex;
-      align-items: center;
       justify-content: center;
-      overflow: hidden;
+      align-items: center;
+      transition: background-color 0.3s;
     }
-
     #winnerText {
       display: none;
-      font-size: 325%;
-      font-family: sans-serif;
       color: white;
-      text-align: center;
-      line-height: 1;
-      white-space: nowrap;
+      font-size: 3em;
+      font-family: sans-serif;
     }
   </style>
 </head>
 <body>
 
-<div id="winnerText">We have a winner!!!</div>
+<div id="winnerText">We have a winner!</div>
 
-<!-- Green Light Music -->
 <audio id="greenLightMusic" preload="auto">
   <source src="squid_game_green_light.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
+  Your browser does not support audio.
 </audio>
 
 <script>
   const winnerText = document.getElementById('winnerText');
   const greenLightMusic = document.getElementById('greenLightMusic');
-
   let cycleStarted = false;
 
-  function startCycle() {
-    // Start with RED light
-    setRedLight();
+  function setRedLight() {
+    document.body.style.backgroundColor = 'red';
+    winnerText.style.display = 'none';
+    greenLightMusic.pause();
+    greenLightMusic.currentTime = 0;
+  }
 
-    // Random red duration: 2–7 seconds
+  function setGreenLight() {
+    document.body.style.backgroundColor = 'green';
+    winnerText.style.display = 'none';
+    greenLightMusic.currentTime = 0;
+    greenLightMusic.play().catch(err => console.warn("Play failed", err));
+  }
+
+  function startCycle() {
+    setRedLight();
     const redDuration = Math.floor(Math.random() * 5000) + 2000;
 
     setTimeout(() => {
-      // Switch to green light
       setGreenLight();
-
-      // Stay green for exactly 9 seconds
       setTimeout(() => {
-        // Turn red again and restart loop
         setRedLight();
         startCycle();
       }, 9000);
     }, redDuration);
   }
 
-  function setRedLight() {
-    document.body.style.backgroundColor = 'red';
-    winnerText.style.display = 'none';
-
-    // Stop and reset music if it's playing
-    if (!greenLightMusic.paused) {
+  document.addEventListener('keydown', function(event) {
+    // Unlock audio on first key
+    greenLightMusic.play().then(() => {
       greenLightMusic.pause();
       greenLightMusic.currentTime = 0;
-    }
-  }
-
-  function setGreenLight() {
-    document.body.style.backgroundColor = 'green';
-    winnerText.style.display = 'none';
-
-    // Play music only on green
-    greenLightMusic.currentTime = 0;
-    greenLightMusic.play().catch((e) => {
-      console.warn("Music play was blocked by browser:", e);
     });
-  }
 
-  document.addEventListener('keydown', function(event) {
     if (event.key === '1') {
       document.body.style.backgroundColor = 'blue';
       winnerText.style.display = 'block';
