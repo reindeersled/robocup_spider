@@ -1,0 +1,171 @@
+import time
+import random
+import cv2
+import numpy as np
+from picamera2 import Picamera2
+from gpiozero import AngularServo, OutputDevice
+from signal import pause
+
+# Define GPIO pin numbers for servos (hip1, knee1, hip2, knee2, ..., hip6, knee6)
+pwm_pins = [2, 3, 17, 27, 10, 9, 0, 5, 6, 13, 19, 26]
+
+# Servo calibration offsets
+servo_offsets = [0] * 12  # Adjust if needed
+
+# Create servo objects
+servos = [AngularServo(pin, min_angle=0, max_angle=180) for pin in pwm_pins]
+
+# Camera setup
+picam2 = Picamera2()
+config = picam2.create_preview_configuration(main={"size": (640, 480)})
+picam2.configure(config)
+picam2.start()
+
+# State flags
+twitched = False
+frozen = False
+
+def set_servo_angle(index, angle):
+    angle = max(0, min(180, angle + servo_offsets[index]))
+    servos[index].angle = angle
+
+def center_all_servos():
+    for i in range(12):
+        set_servo_angle(i, 90)
+
+def stop_all_servos():
+    for servo in servos:
+        servo.detach()
+
+def dance_code_twist(duration):
+    start_time = time.time()
+    while time.time() - start_time < duration:
+        for i in range(12):
+            if i % 2 == 0:
+                set_servo_angle(i, 150)
+            else:
+                set_servo_angle(i, 20)
+        time.sleep(0.5)
+        for i in range(12):
+            if i % 2 == 0:
+                set_servo_angle(i, 30)
+            else:
+                set_servo_angle(i, 20)
+        time.sleep(0.5)
+
+def dance_code_down():
+    for i in range(12):
+        set_servo_angle(i, 90)
+    time.sleep(0.5)
+    for i in range(12):
+        if i % 2 != 0:
+            set_servo_angle(i, 120)
+    for i in range(12):
+        if i % 2 == 0:
+            set_servo_angle(i, 120)
+    time.sleep(0.5)
+    for i in range(12):
+        if i % 2 == 0:
+            set_servo_angle(i, 20)
+    time.sleep(0.5)
+
+def walk_forward_tripod2(speed=0.5):
+    TRIPOD_A = [0, 2, 4]
+    TRIPOD_A_UP = [1, 3, 5]
+    TRIPOD_B = [6, 8, 10]
+    TRIPOD_B_UP = [7, 9, 11]
+
+    for up in TRIPOD_A_UP:
+        set_servo_angle(up, 120)
+    time.sleep(0.1 * speed)
+
+    for side in TRIPOD_A:
+        set_servo_angle(side, 120)
+    time.sleep(0.2 * speed)
+
+    for up in TRIPOD_A_UP:
+        set_servo_angle(up, 60)
+    time.sleep(0.1 * speed)
+
+    for up in TRIPOD_B_UP:
+        set_servo_angle(up, 120)
+    time.sleep(0.1 * speed)
+
+    for side in TRIPOD_B:
+        set_servo_angle(side, 60)
+    time.sleep(0.2 * speed)
+
+    for i in range(12):
+        set_servo_angle(i, 90)
+    time.sleep(0.1 * speed)
+
+def detect_color(frame):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # Green
+    if cv2.inRange(hsv, (40, 70, 50), (80, 255, 255)).any():
+        return "green"
+    # Red (two HSV ranges)
+    red1 = cv2.inRange(hsv, (0, 70, 50), (10, 255, 255))
+    red2 = cv2.inRange(hsv, (170, 70, 50), (180, 255, 255))
+    if (red1 | red2).any():
+        return "red"
+    # Blue
+    if cv2.inRange(hsv, (100, 150, 0), (140, 255, 255)).any():
+        return "blue"
+    return "none"
+
+def twitch_once():
+    for i in range(12):
+        set_servo_angle(i, random.randint(60, 120))
+    time.sleep(1)
+    stop_all_servos()
+
+def victory_dance():
+    print("💃 BLUE DETECTED – Starting VICTORY DANCE!")
+    dance_code_twist(50)
+    start = time.time()
+    while time.time() - start < 50:
+        dance_code_down()
+    start = time.time()
+    while time.time() - start < 41:
+        walk_forward_tripod2(0.5)
+
+def main_loop():
+    global twitched, frozen
+    center_all_servos()
+    print("Starting spider behavior loop...")
+    try:
+        while True:
+            frame = picam2.capture_array()
+            color = detect_color(frame)
+
+            if frozen:
+                continue
+
+            if color == "green":
+                walk_forward_tripod2(0.5)
+
+            elif color == "red":
+                if not twitched and random.random() < 0.05:
+                    print("⚠️ TWITCHING")
+                    twitch_once()
+                    twitched = True
+                    frozen = True
+                else:
+                    stop_all_servos()
+
+            elif color == "blue":
+                victory_dance()
+
+            else:
+                stop_all_servos()
+            time.sleep(0.1)
+
+    except KeyboardInterrupt:
+        print("🛑 Interrupted")
+    finally:
+        stop_all_servos()
+        picam2.stop()
+
+if __name__ == "__main__":
+    main_loop()
